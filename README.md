@@ -1,7 +1,7 @@
 0. Python dependencies: `pip3 install duckdb pands tabulate`
 1. Download dataset from s3: `s3://alex-datasets/dmv/dmv_fuel_type_passengers.csv`
 2. Copy the downloaded dataset into the root directory of the repo.
-3. Create a copy of the tempalte (`group_template`), please prefix your group folder with `group_`:
+3. Create a copy of the template (`group_template`), please prefix your group folder with `group_`:
    ```bash
    cp -rf group_template group_lightning_speed
    ```
