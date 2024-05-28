@@ -19,7 +19,8 @@ def query(df):
     # select fuel_type,
     #        count(*) as vehicle_count,
     #        round(avg(passengers), 1) as avg_passengers
-    # from dmv group by fuel_type
+    # from dmv
+    # group by fuel_type
     # order by fuel_type;
     return pd.DataFrame(columns=['fuel_type', 'vehicle_count', 'avg_passengers'], data=[('X', 0, 0)])
 
