@@ -6,6 +6,7 @@ import time
 def validate(actual_result):
     # Hint: make sure the types of the data frame match as well: print(expected_result["volume"])
     expected_result = pd.read_csv('join_expected.csv')
+
     if not actual_result.equals(expected_result):
         print("EXPECTED:\n===")
         print(expected_result)
@@ -70,9 +71,9 @@ create table part
 """
 con.execute(schema).fetchall()
 con.execute(
-    "copy lineitem from '~/workspace/data/tpch/sf-1/lineitem.csv' CSV HEADER;").fetchall()
+    "copy lineitem from 'tpch/sf-1/lineitem.csv' CSV HEADER;").fetchall()
 con.execute(
-    "copy part from '~/workspace/data/tpch/sf-1/part.csv' CSV HEADER;").fetchall()
+    "copy part from 'tpch/sf-1/part.csv' CSV HEADER;").fetchall()
 
 # Run query (data is loaded before, everything else needs to be timed)
 start = time.time()

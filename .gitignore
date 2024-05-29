@@ -1,2 +1,5 @@
 dmv/
+tpch/
 dmv_field_type_passengers.csv
+lineitem.csv
+part.csv

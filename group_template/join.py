@@ -18,6 +18,8 @@ def validate(actual_result):
 
 def query(con):
     # TODO: Implement the query and return a data frame with the result.
+    # NOTE: Don't use duckdb or built-in pandas functions for the join!
+    # NOTE: Your join operator should be done manually.
     #    select sum(l_extendedprice)::bigint as volume
     #    from lineitem, part
     #    where l_partkey = p_partkey
@@ -65,9 +67,9 @@ create table part
 """
 con.execute(schema).fetchall()
 con.execute(
-    "copy lineitem from '~/workspace/data/tpch/sf-1/lineitem.csv' CSV HEADER;").fetchall()
+    "copy lineitem from 'tpch/sf-1/lineitem.csv' CSV HEADER;").fetchall()
 con.execute(
-    "copy part from '~/workspace/data/tpch/sf-1/part.csv' CSV HEADER;").fetchall()
+    "copy part from 'tpch/sf-1/part.csv' CSV HEADER;").fetchall()
 
 # Run query (data is loaded before, everything else needs to be timed)
 start = time.time()
