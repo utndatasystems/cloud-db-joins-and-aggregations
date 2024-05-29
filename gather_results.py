@@ -4,17 +4,22 @@ from subprocess import Popen, PIPE
 from datetime import datetime, timedelta
 from tabulate import tabulate
 
-# Run with: python3 gather_results.py `ls -d group_*`
+# Run with:
+# For aggregation: python3 gather_results.py aggregation `ls -d group_*`
+# For join: python3 gather_results.py join `ls -d group_*`
 
 # Get the file to be executed
-group_folders = sys.argv[1:]
+bench_type = sys.argv[1]
+group_folders = sys.argv[2:]
 
 results = []
 
 # Loop over all directories starting with "group_"
 for folder in group_folders:
     # Execute the file
-    file = f"{folder}/aggregation.py"
+    file = f'{folder}/{bench_type}.py'
+    if not os.path.exists(file):
+        continue
     print("Evaluating:", file)
     process = Popen(["python3", file], stdout=PIPE)
     (output, err) = process.communicate()
