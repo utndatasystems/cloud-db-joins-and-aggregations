@@ -25,24 +25,36 @@ def query(df):
     avg_dict = {}
     print(df.info())
     for index, row in df.iterrows():
-        print(row["fuel_type"], row["passengers"])
+        # print(row["fuel_type"], row["passengers"])
         if row["fuel_type"] in count_dict:
+            count_dict[row["fuel_type"]] += 1
             if pd.isna(row["passengers"]):
-                count_dict[row["fuel_type"]] += 1
+                avg_dict[row["fuel_type"]] += 0
+            else:
                 avg_dict[row["fuel_type"]] += int(row["passengers"])
         else:
+            count_dict[row["fuel_type"]] = 1
             if pd.isna(row["passengers"]):
-                count_dict[row["fuel_type"]] = 1
+                avg_dict[row["fuel_type"]] = 0
+            else:
                 avg_dict[row["fuel_type"]] = int(row["passengers"])
-                    
-        print()
+        if index % 10000 == 0:
+            print(index)
+    print(count_dict)
+    print(avg_dict)
 
+    output_list = []
+    for key in count_dict:
+        count = count_dict[key]
+        avg = avg_dict[key] / count
+        output_list.append((key, count, avg))
 
+    print(output_list)
     return pd.DataFrame(columns=['fuel_type', 'vehicle_count', 'avg_passengers'], data=[('X', 0, 0)])
 
 
 # Read data
-df = pd.read_csv('dmv_fuel_type_passengers_sample.csv')
+df = pd.read_csv('dmv_fuel_type_passengers.csv')
 
 # Run query (data is loaded before, everything else needs to be timed)
 start = time.time()
