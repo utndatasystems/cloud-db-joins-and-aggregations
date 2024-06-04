@@ -34,12 +34,13 @@ def query(con):
     date_start = pd.to_datetime('1995-09-01')
     date_end = pd.to_datetime('1995-10-01')
     join_result = []
-    for _, lineitem_row in lineitem_df.iterrows():
+    for index, lineitem_row in lineitem_df.iterrows():
         for _, part_row in part_df.iterrows():
             if lineitem_row['l_partkey'] == part_row['p_partkey']:
                 if date_start <= lineitem_row['l_shipdate'] < date_end:
                     join_result.append(lineitem_row['l_extendedprice'])
-    
+        if index % 100000 == 0:
+            print(index)
     volume = sum(join_result)
     return pd.DataFrame({'volume': [volume]})
 

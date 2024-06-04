@@ -22,35 +22,42 @@ def query(df):
     # from dmv group by fuel_type
     # order by fuel_type;
     count_dict = {}
-    avg_dict = {}
+    passenger_sum_dict = {}
+    passenger_count_dict = {}
     print(df.info())
     for index, row in df.iterrows():
         # print(row["fuel_type"], row["passengers"])
         if row["fuel_type"] in count_dict:
             count_dict[row["fuel_type"]] += 1
             if pd.isna(row["passengers"]):
-                avg_dict[row["fuel_type"]] += 0
+                passenger_sum_dict[row["fuel_type"]] += 0
             else:
-                avg_dict[row["fuel_type"]] += int(row["passengers"])
+                passenger_count_dict[row["fuel_type"]] += 1
+                passenger_sum_dict[row["fuel_type"]] += int(row["passengers"])
         else:
             count_dict[row["fuel_type"]] = 1
+            passenger_count_dict[row["fuel_type"]] = 0
             if pd.isna(row["passengers"]):
-                avg_dict[row["fuel_type"]] = 0
+                passenger_sum_dict[row["fuel_type"]] = 0
             else:
-                avg_dict[row["fuel_type"]] = int(row["passengers"])
-        if index % 10000 == 0:
+                passenger_count_dict[row["fuel_type"]] += 1
+                passenger_sum_dict[row["fuel_type"]] = int(row["passengers"])
+        if index % 100000 == 0:
             print(index)
     print(count_dict)
-    print(avg_dict)
+    print(passenger_sum_dict)
+
+    key_list = list(count_dict.keys())
+    key_list.sort()
 
     output_list = []
-    for key in count_dict:
+    for key in key_list:
         count = count_dict[key]
-        avg = avg_dict[key] / count
+        avg = passenger_sum_dict[key] / passenger_count_dict[key]
         output_list.append((key, count, avg))
 
     print(output_list)
-    return pd.DataFrame(columns=['fuel_type', 'vehicle_count', 'avg_passengers'], data=[('X', 0, 0)])
+    return pd.DataFrame(columns=['fuel_type', 'vehicle_count', 'avg_passengers'], data=output_list)
 
 
 # Read data
