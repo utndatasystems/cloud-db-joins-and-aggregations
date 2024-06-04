@@ -30,7 +30,7 @@ def query(df):
         if row["fuel_type"] in count_dict:
             count_dict[row["fuel_type"]] += 1
             if pd.isna(row["passengers"]):
-                passenger_sum_dict[row["fuel_type"]] += 0
+                passenger_sum_dict['nan'] += 0
             else:
                 passenger_count_dict[row["fuel_type"]] += 1
                 passenger_sum_dict[row["fuel_type"]] += int(row["passengers"])
@@ -38,7 +38,7 @@ def query(df):
             count_dict[row["fuel_type"]] = 1
             passenger_count_dict[row["fuel_type"]] = 0
             if pd.isna(row["passengers"]):
-                passenger_sum_dict[row["fuel_type"]] = 0
+                passenger_sum_dict['nan'] = 0
             else:
                 passenger_count_dict[row["fuel_type"]] += 1
                 passenger_sum_dict[row["fuel_type"]] = int(row["passengers"])
@@ -51,7 +51,7 @@ def query(df):
     # key_list.sort()
 
     output_list = []
-    for key in sorted(key_list):
+    for key in key_list:
         count = count_dict[key]
         if passenger_count_dict[key] == 0:
             avg = 'nan'

@@ -36,12 +36,13 @@ def query(con):
     # date_start = pd.to_datetime('1995-09-01')
     # date_end = pd.to_datetime('1995-10-01')
     join_result = []
+    # l_partkey_dict = {}
     for index, lineitem_row in lineitem_df.iterrows():
-        for _, part_row in part_df.iterrows():
-            if lineitem_row['l_partkey'] == part_row['p_partkey']:
-                if lineitem_row['l_shipdate_year'] == 1995 and lineitem_row['l_shipdate_month'] == 9:
+        if lineitem_row['l_shipdate_year'] == 1995 and lineitem_row['l_shipdate_month'] == 9:
+            for _, part_row in part_df.iterrows():
+                if lineitem_row['l_partkey'] == part_row['p_partkey']:
                     join_result.append(lineitem_row['l_extendedprice'])
-        if index % 100000 == 0:
+        if index % 10 == 0:
             print(index)
     volume = sum(join_result)
     return pd.DataFrame({'volume': [volume]})
