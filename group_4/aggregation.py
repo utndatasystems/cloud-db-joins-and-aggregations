@@ -48,12 +48,15 @@ def query(df):
     print(passenger_sum_dict)
 
     key_list = list(count_dict.keys())
-    key_list.sort()
+    # key_list.sort()
 
     output_list = []
-    for key in key_list:
+    for key in sorted(key_list):
         count = count_dict[key]
-        avg = passenger_sum_dict[key] / passenger_count_dict[key]
+        if passenger_count_dict[key] == 0:
+            avg = 'nan'
+        else:
+            avg = round(passenger_sum_dict[key] / passenger_count_dict[key], 1)
         output_list.append((key, count, avg))
 
     print(output_list)
@@ -61,7 +64,7 @@ def query(df):
 
 
 # Read data
-df = pd.read_csv('dmv_fuel_type_passengers.csv')
+df = pd.read_csv('dmv_fuel_type_passengers_sample.csv')
 
 # Run query (data is loaded before, everything else needs to be timed)
 start = time.time()
