@@ -31,13 +31,15 @@ def query(con):
     print(lineitem_df.info())
     print(part_df.info())
     lineitem_df['l_shipdate'] = pd.to_datetime(lineitem_df['l_shipdate'])
+    lineitem_df['l_shipdate_year'] = lineitem_df['l_shipdate'].dt.year
+    lineitem_df['l_shipdate_month'] = lineitem_df['l_shipdate'].dt.month
     # date_start = pd.to_datetime('1995-09-01')
     # date_end = pd.to_datetime('1995-10-01')
     join_result = []
     for index, lineitem_row in lineitem_df.iterrows():
         for _, part_row in part_df.iterrows():
             if lineitem_row['l_partkey'] == part_row['p_partkey']:
-                if lineitem_row['l_shipdate'].dt.year == 1995 and lineitem_row['l_shipdate'].dt.month == 9:
+                if lineitem_row['l_shipdate_year'] == 1995 and lineitem_row['l_shipdate_month'] == 9:
                     join_result.append(lineitem_row['l_extendedprice'])
         if index % 100000 == 0:
             print(index)
