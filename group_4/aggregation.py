@@ -24,13 +24,14 @@ def query(df):
     count_dict = {}
     passenger_sum_dict = {}
     passenger_count_dict = {}
+    df['fuel_type'] = df['fuel_type'].astype(str)
     print(df.info())
     for index, row in df.iterrows():
         # print(row["fuel_type"], row["passengers"])
         if row["fuel_type"] in count_dict:
             count_dict[row["fuel_type"]] += 1
             if pd.isna(row["passengers"]):
-                passenger_sum_dict['nan'] += 0
+                passenger_sum_dict[row["fuel_type"]] += 0
             else:
                 passenger_count_dict[row["fuel_type"]] += 1
                 passenger_sum_dict[row["fuel_type"]] += int(row["passengers"])
@@ -38,7 +39,7 @@ def query(df):
             count_dict[row["fuel_type"]] = 1
             passenger_count_dict[row["fuel_type"]] = 0
             if pd.isna(row["passengers"]):
-                passenger_sum_dict['nan'] = 0
+                passenger_sum_dict[row["fuel_type"]] = 0
             else:
                 passenger_count_dict[row["fuel_type"]] += 1
                 passenger_sum_dict[row["fuel_type"]] = int(row["passengers"])
@@ -48,15 +49,18 @@ def query(df):
     print(passenger_sum_dict)
 
     key_list = list(count_dict.keys())
+    print(key_list)
     # key_list.sort()
 
     output_list = []
-    for key in key_list:
+    for key in sorted(key_list):
         count = count_dict[key]
         if passenger_count_dict[key] == 0:
-            avg = 'nan'
+            avg = 'NaN'
         else:
             avg = round(passenger_sum_dict[key] / passenger_count_dict[key], 1)
+        if key == "nan":
+            key = "NaN"
         output_list.append((key, count, avg))
 
     print(output_list)
@@ -64,7 +68,7 @@ def query(df):
 
 
 # Read data
-df = pd.read_csv('dmv_fuel_type_passengers_sample.csv')
+df = pd.read_csv('dmv_fuel_type_passengers.csv')
 
 # Run query (data is loaded before, everything else needs to be timed)
 start = time.time()
