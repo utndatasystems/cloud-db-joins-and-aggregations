@@ -26,33 +26,24 @@ def query(con):
     #    and l_shipdate >= date '1995-09-01'
     #    and l_shipdate < date '1995-10-01';""")
     print("Strat query")
-    lineitem_df = con.execute("SELECT * FROM lineitem WHERE l_shipdate >= '1995-09-01' AND l_shipdate < '1995-10-01'").fetchdf()
+    lineitem_df = con.execute("SELECT * FROM lineitem").fetchdf()
     part_df = con.execute("SELECT * FROM part").fetchdf()
 
     part_keys = set(part_df['p_partkey'])
 
-    print(lineitem_df.info())
-    print(part_df.info())
-    # lineitem_df['l_shipdate'] = pd.to_datetime(lineitem_df['l_shipdate'])
-    # lineitem_df['l_shipdate_year'] = lineitem_df['l_shipdate'].dt.year
-    # lineitem_df['l_shipdate_month'] = lineitem_df['l_shipdate'].dt.month
-    # date_start = pd.to_datetime('1995-09-01')
-    # date_end = pd.to_datetime('1995-10-01')
-    join_result = []
-    # l_partkey_dict = {}
-    for index, lineitem_row in lineitem_df.iterrows():
-        # if lineitem_row['l_shipdate_year'] == 1995 and lineitem_row['l_shipdate_month'] == 9:
-        #     l_partkey_dict[lineitem_row['l_partkey']] = 0
-        if lineitem_row['l_partkey'] in part_keys:
-            join_result.append(lineitem_row['l_extendedprice'])
-        if index % 10 == 0:
-            print(index)
 
-    # for index, part_row in part_df.iterrows():
-    #     if part_row['p_partkey'] in part_keys:
-    #         join_result.append(part_row['l_extendedprice'])
-    #     if index % 10000 == 0:
-    #         print(index)
+    lineitem_df['l_shipdate_year'] = lineitem_df['l_shipdate'].dt.year
+    lineitem_df['l_shipdate_month'] = lineitem_df['l_shipdate'].dt.month
+    l_shipdate_year = lineitem_df['l_shipdate_year'].to_numpy()
+    l_shipdate_month = lineitem_df['l_shipdate_month'].to_numpy()
+    l_partkey = lineitem_df['l_partkey'].to_numpy()
+    l_extendedprice = lineitem_df['l_extendedprice'].to_numpy()
+    join_result = []
+    for i in range(len(l_partkey)):
+        if l_shipdate_year[i] == 1995 and l_shipdate_month[i] == 9:
+            if l_partkey[i] in part_keys:
+                join_result.append(l_extendedprice[i])
+
     volume = int(sum(join_result))
     return pd.DataFrame({'volume': [volume]})
 

@@ -4,6 +4,7 @@ import time
 
 def validate(actual_result):
     expected_result = pd.read_csv('dmv_fuel_type_passengers_expected.csv')
+    # print(type(expected_result["fuel_type"][8]))
     if not actual_result.equals(expected_result):
         print("EXPECTED:\n===")
         print(expected_result)
@@ -25,45 +26,47 @@ def query(df):
     passenger_sum_dict = {}
     passenger_count_dict = {}
     df['fuel_type'] = df['fuel_type'].astype(str)
-    print(df.info())
-    for index, row in df.iterrows():
+    fuel_type = df['fuel_type'].to_numpy()
+    passengers = df['passengers'].to_numpy()
+    # print(df.info())
+    for i in range(len(fuel_type)):
         # print(row["fuel_type"], row["passengers"])
-        if row["fuel_type"] in count_dict:
-            count_dict[row["fuel_type"]] += 1
-            if pd.isna(row["passengers"]):
-                passenger_sum_dict[row["fuel_type"]] += 0
+        if fuel_type[i] in count_dict:
+            count_dict[fuel_type[i]] += 1
+            if pd.isna(passengers[i]):
+                passenger_sum_dict[fuel_type[i]] += 0
             else:
-                passenger_count_dict[row["fuel_type"]] += 1
-                passenger_sum_dict[row["fuel_type"]] += int(row["passengers"])
+                passenger_count_dict[fuel_type[i]] += 1
+                passenger_sum_dict[fuel_type[i]] += int(passengers[i])
         else:
-            count_dict[row["fuel_type"]] = 1
-            passenger_count_dict[row["fuel_type"]] = 0
-            if pd.isna(row["passengers"]):
-                passenger_sum_dict[row["fuel_type"]] = 0
+            count_dict[fuel_type[i]] = 1
+            passenger_count_dict[fuel_type[i]] = 0
+            if pd.isna(passengers[i]):
+                passenger_sum_dict[fuel_type[i]] = 0
             else:
-                passenger_count_dict[row["fuel_type"]] += 1
-                passenger_sum_dict[row["fuel_type"]] = int(row["passengers"])
-        if index % 100000 == 0:
-            print(index)
-    print(count_dict)
-    print(passenger_sum_dict)
+                passenger_count_dict[fuel_type[i]] += 1
+                passenger_sum_dict[fuel_type[i]] = int(passengers[i])
+        # if i % 100000 == 0:
+        #     print(i)
+    # print(count_dict)
+    # print(passenger_sum_dict)
 
     key_list = list(count_dict.keys())
-    print(key_list)
+    # print(key_list)
     # key_list.sort()
 
     output_list = []
     for key in sorted(key_list):
         count = count_dict[key]
         if passenger_count_dict[key] == 0:
-            avg = 'NaN'
+            avg = None
         else:
             avg = round(passenger_sum_dict[key] / passenger_count_dict[key], 1)
         if key == "nan":
-            key = "NaN"
+            key = None
         output_list.append((key, count, avg))
 
-    print(output_list)
+    # print(output_list)
     return pd.DataFrame(columns=['fuel_type', 'vehicle_count', 'avg_passengers'], data=output_list)
 
 
@@ -74,6 +77,7 @@ df = pd.read_csv('dmv_fuel_type_passengers.csv')
 start = time.time()
 result = query(df)
 end = time.time()
+# print("Result:", end - start)
 
 # Validate result and print time
 if validate(result):
