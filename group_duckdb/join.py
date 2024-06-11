@@ -71,9 +71,9 @@ create table part
 """
 con.execute(schema).fetchall()
 con.execute(
-    "copy lineitem from 'tpch/sf-1/lineitem.csv' CSV HEADER;").fetchall()
+    "copy lineitem from '/Users/alex/workspace/data/tpch/sf-1/lineitem.csv' CSV;").fetchall()
 con.execute(
-    "copy part from 'tpch/sf-1/part.csv' CSV HEADER;").fetchall()
+    "copy part from '/Users/alex/workspace/data/tpch/sf-1/part.csv' CSV;").fetchall()
 
 # Run query (data is loaded before, everything else needs to be timed)
 start = time.time()
