@@ -1,11 +1,15 @@
+from collections import defaultdict
+import datetime
+
 import pandas as pd
 import duckdb
 import time
 
 
 def validate(actual_result):
+    # Hint: make sure the types of the data frame match as well: print(expected_result["volume"])
     expected_result = pd.read_csv('join_expected.csv')
-    # Hint: make sure the types of the data frame match as well: print(expected_result.dtypes)
+
     if not actual_result.equals(expected_result):
         print("EXPECTED:\n===")
         print(expected_result)
@@ -17,15 +21,35 @@ def validate(actual_result):
 
 
 def query(con):
-    # TODO: Implement the query and return a data frame with the result.
-    # NOTE: Don't use duckdb or built-in pandas functions for the join!
-    # NOTE: Your join operator should be done manually.
-    #    select sum(l_extendedprice)::bigint as volume
-    #    from lineitem, part
-    #    where l_partkey = p_partkey
-    #    and l_shipdate >= date '1995-09-01'
-    #    and l_shipdate < date '1995-10-01';""")
-    return pd.DataFrame({'volume': [2906154294]})
+    # constants for indices
+    l_ship_date_idx = 10
+    l_extendedprice_idx = 5
+    l_partkey_idx = 1
+    p_partkey_idx = 0
+
+    # initial volume
+    volume = 0
+
+    # load the tables as np arrays
+    lineitem = con.table("lineitem").to_df()
+    lineitem = lineitem.to_numpy()
+
+    part = con.table("part").to_df()
+    part = part.to_numpy()
+    # build the hashmap of the small table
+    hash_small_table = defaultdict(int)
+    for i, p_partkey in enumerate(part[:, p_partkey_idx]):
+        if p_partkey not in hash_small_table:
+            hash_small_table[p_partkey] = -1
+
+    # probe values from the large table
+    for j, l_shipdate in enumerate(lineitem[:, l_ship_date_idx]):
+        date = l_shipdate.date()
+        l_partkey = lineitem[j, l_partkey_idx]
+        if datetime.date(1995, 9, 1) <= date < datetime.date(1995, 10, 1):
+            if hash_small_table[l_partkey] == -1:
+                volume += lineitem[j, l_extendedprice_idx]
+    return pd.DataFrame({'volume': [int(volume)]})
 
 
 # Read data
