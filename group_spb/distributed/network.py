@@ -50,7 +50,7 @@ if __name__ == "__main__":
     my_id = ast.literal_eval(sys.argv[1])
     all_ports = ast.literal_eval(sys.argv[2])
     other_ports = all_ports[:my_id] + all_ports[my_id+1:]
-    network = Network(all_ports[my_id], all_ports, ip="")
+    network = Network(all_ports[my_id], all_ports, ip=ip_billy)
     node_count = len(all_ports)
 
     # Create a fake-relation-data-frame
