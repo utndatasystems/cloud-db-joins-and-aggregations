@@ -62,67 +62,75 @@ if __name__ == "__main__":
     ip_billy = "localhost"
     num_global_tuples = 1_000_000
 
-    assert len(sys.argv) == 3
+    assert len(sys.argv) == 4
     my_id = ast.literal_eval(sys.argv[1])
     all_ports = ast.literal_eval(sys.argv[2])
+    shuffle = sys.argv[3] in ["true", "True"]
     other_ports = all_ports[:my_id] + all_ports[my_id+1:]
     network = Network(all_ports[my_id], all_ports, ip=ip_billy)
     node_count = len(all_ports)
 
     gen = data_generator.DataGenerator(my_id, node_count, num_global_tuples)
     local_r = gen.create_relation_r()
-    local_s = gen.create_relation_s()
+    local_s = gen.create_small_relation_s(table_size=20)
 
-    shuffled_r = shuffle_tables(local_r, node_count)
-    shuffled_s = shuffle_tables(local_s, node_count)
+    if shuffle:
+        local_s = gen.create_relation_s()
 
-    local_r = shuffled_r[my_id]
-    local_s = shuffled_s[my_id]
+        shuffled_r = shuffle_tables(local_r, node_count)
+        shuffled_s = shuffle_tables(local_s, node_count)
 
-    # Send a 'hello' data-frame to every other node
-    for id, port in enumerate(all_ports):
-        if id != my_id:
-            df = pd.DataFrame(
-                data={
-                    "From": port,
-                    "shuffled_r": [shuffled_r[id]],
-                    "shuffled_s": [shuffled_s[id]]
-                }
-            )
-            print(f"Sending to port number: {port}, id: {id}")
-            print("shuffled_r\n")
-            print(df['shuffled_r'])
-            print()
-            print("shuffled_s\n")
-            print(df['shuffled_s'])
-            print()
-            network.client_send_message(port, Serializer.serialize_df(df))
+        local_r = shuffled_r[my_id]
+        local_s = shuffled_s[my_id]
+
+    if shuffle:
+        # Send a 'hello' data-frame to every other node
+        for id, port in enumerate(all_ports):
+            if id != my_id:
+                df = pd.DataFrame(
+                    data={
+                        "From": port,
+                        "shuffled_r": [shuffled_r[id]],
+                        "shuffled_s": [shuffled_s[id]]
+                    }
+                )
+                print(f"Sending to port number: {port}, id: {id}")
+                print("shuffled_r\n")
+                print(df['shuffled_r'])
+                print()
+                print("shuffled_s\n")
+                print(df['shuffled_s'])
+                print()
+                network.client_send_message(port, Serializer.serialize_df(df))
 
 
     # Receive the 'hello'-df from all other nodes
-    for _ in other_ports:
-        message = network.server_receive_message()
-        receive_df = Serializer.deserialize_df(message)
-        print(f"Receive from port number: {receive_df['From'][0]}")
-        print("shuffled_r\n")
-        print(receive_df['shuffled_r'])
-        print()
-        print("shuffled_s\n")
-        print(receive_df['shuffled_s'])
-        print()
-        local_r = pd.concat([local_r, receive_df['shuffled_r'][0]], axis=0)
-        local_s = pd.concat([local_s, receive_df['shuffled_s'][0]], axis=0)
+    if shuffle:
+        for _ in other_ports:
+            message = network.server_receive_message()
+            receive_df = Serializer.deserialize_df(message)
+            print(f"Receive from port number: {receive_df['From'][0]}")
+            print("shuffled_r\n")
+            print(receive_df['shuffled_r'])
+            print()
+            print("shuffled_s\n")
+            print(receive_df['shuffled_s'])
+            print()
+            local_r = pd.concat([local_r, receive_df['shuffled_r'][0]], axis=0)
+            local_s = pd.concat([local_s, receive_df['shuffled_s'][0]], axis=0)
 
+    # local inner join by every node
     joined = pd.merge(local_r, local_s, on='a', how='inner')
 
-    # Eat all the oks
-    for port in other_ports:
-        network.client_expect_ok(port)
+    if shuffle:
+        # Eat all the oks
+        for port in other_ports:
+            network.client_expect_ok(port)
+
     # this is to add a delay for synchronisation
     time.sleep(1)
 
-    
-
+    # all non-primary nodes send out data to the primary
     if my_id != 0:
         
         joined_data = pd.DataFrame(
@@ -134,37 +142,12 @@ if __name__ == "__main__":
 
         network.client_send_message(all_ports[0], Serializer.serialize_df(joined_data))
 
-        for port in other_ports[1:]:
-            print(f"Sending thanks to {port}")
-            thanks_message = pd.DataFrame(
-                data={
-                    "From": all_ports[my_id],
-                    "message": ["Thanks"]
-                }
-            )
-            network.client_send_message(port, Serializer.serialize_df(thanks_message))
-        
-        for port in other_ports:
-            
-            message = network.server_receive_message()
-            df = Serializer.deserialize_df(message)
-            print(f"Receive thanks from port number: {df['From'][0]}")
-            print(f"{df = }")
     else:
-        # send a dummy message so as to complete one "send receive cycle"
-        for port in other_ports:
-            thanks_message = pd.DataFrame(
-                data={
-                    "From": all_ports[my_id],
-                    "message": ["Thanks"]
-                }
-            )
-            print(f"Sending thanks to {port}")
-            network.client_send_message(port, Serializer.serialize_df(thanks_message))
 
         for port in other_ports:
             
             message = network.server_receive_message()
+            # message_ = network.server_receive_message()
             df = Serializer.deserialize_df(message)
             print(f"Receive result from port number: {df['From'][0]}")
             print(f"{joined = }")
@@ -174,10 +157,9 @@ if __name__ == "__main__":
         print(f"{joined = }")
         print("Total join sum: ", sum(joined["b"] + joined["c"]))
 
-    # Eat all the oks
-    for port in other_ports:
-        # print("Waitin for OKs.")
-        network.client_expect_ok(port)
+    # Eat the oks from the primary node
+    if my_id != 0:
+        network.client_expect_ok(all_ports[0])
 
     # Show how much data was sent
     print(f"Total data sent: {network.total_data_sent}")
