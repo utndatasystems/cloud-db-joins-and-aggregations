@@ -30,6 +30,11 @@ class DataGenerator:
         column_c = [id % 10 for id in self._get_tuple_ids()]
         return pd.DataFrame(data={"a": column_a, "c": column_c})
 
+    def create_small_relation_s(self, table_size):
+        column_a = [(id + 1) for id in range(table_size)]
+        column_b = [id % 10 for id in range(table_size)]
+        return pd.DataFrame(data={"a": column_a, "c": column_b})
+
 
 # Sample code for using the data generator and doing the join locally
 # python3 data_generator.py
@@ -38,14 +43,21 @@ if __name__ == "__main__":
     gen = DataGenerator(0, 1, 1000000)
     local_r = gen.create_relation_r()
     local_s = gen.create_relation_s()
-
+    local_s_small = gen.create_small_relation_s(table_size=20)
     # Print for debugging :)
     print("Relation R")
     print(local_r.head())
     print("Relation S")
     print(local_s.head())
+    print("Relation S - small")
+    print(local_s_small.head())
     print("----------")
-
     # Create the full relation `s` and join
     joined = pd.merge(local_r, local_s, on='a', how='inner')
+    print(f"sum(joined(['b'] + ['c'])): large tables")
     print(sum(joined["b"] + joined["c"]))
+
+    joined_small = pd.merge(local_r, local_s_small, on='a', how='inner')
+    print(f"{joined_small = }")
+    print(f"sum(joined(['b'] + ['c'])): small s relation")
+    print(sum(joined_small["b"] + joined_small["c"]))
